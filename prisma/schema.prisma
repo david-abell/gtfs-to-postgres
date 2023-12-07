@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider       = "zod-prisma-types"
+  createInputTypes = false
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agency {
+  agencyId       String  @id @map("agency_id")
+  agencyName     String  @map("agency_name")
+  agencyUrl      String  @map("agency_url")
+  agencyTimezone String  @map("agency_timezone")
+  route          Route[]
+
+  @@map("agency")
+}
+
+model Calendar {
+  serviceId    String         @id @map("service_id")
+  monday       Int
+  tuesday      Int
+  wednesday    Int
+  thursday     Int
+  friday       Int
+  saturday     Int
+  sunday       Int
+  startDate    Int            @map("start_date")
+  endDate      Int            @map("end_date")
+  calendarDate CalendarDate[]
+  trip         Trip[]
+
+  @@index([endDate], map: "idx_calendar_end_date")
+  @@index([startDate], map: "idx_calendar_start_date")
+  @@map("calendar")
+}
+
+model CalendarDate {
+  id            Int      @id @default(autoincrement())
+  serviceId     String   @map("service_id")
+  date          Int
+  exceptionType Int      @map("exception_type")
+  calendar      Calendar @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([exceptionType], map: "idx_calendar_date_exception_type")
+  @@index([serviceId], map: "idx_calendar_date_service_id")
+  @@map("calendar_date")
+}
+
+model Route {
+  routeId        String  @id @map("route_id")
+  agencyId       String? @map("agency_id")
+  routeShortName String? @map("route_short_name")
+  routeLongName  String? @map("route_long_name")
+  routeType      Int     @map("route_type")
+  agency         Agency? @relation(fields: [agencyId], references: [agencyId], onDelete: NoAction, onUpdate: NoAction)
+  trip           Trip[]
+
+  @@map("route")
+}
+
+model Shape {
+  id                Int    @id @default(autoincrement())
+  shapeId           String @map("shape_id")
+  shapePtLat        Float  @map("shape_pt_lat")
+  shapePtLon        Float  @map("shape_pt_lon")
+  shapePtSequence   Int    @map("shape_pt_sequence")
+  shapeDistTraveled Float? @map("shape_dist_traveled")
+
+  @@index([shapeId], map: "idx_shapes_shape_id")
+  @@map("shape")
+}
+
+model StopTime {
+  id                 Int     @id @default(autoincrement())
+  tripId             String  @map("trip_id")
+  arrivalTime        String? @map("arrival_time")
+  arrivalTimestamp   Int?    @map("arrival_timestamp")
+  departureTime      String? @map("departure_time")
+  departureTimestamp Int?    @map("departure_timestamp")
+  stopId             String  @map("stop_id")
+  stopSequence       Int     @map("stop_sequence")
+  stopHeadsign       String? @map("stop_headsign")
+  pickupType         Int?    @map("pickup_type")
+  dropOffType        Int?    @map("drop_off_type")
+  timepoint          Int?
+  stop               Stop    @relation(fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  trip               Trip    @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([departureTimestamp], map: "idx_stop_time_departure_timestamp")
+  @@index([arrivalTimestamp], map: "idx_stop_time_arrival_timestamp")
+  @@index([tripId], map: "idx_stop_time_trip_id")
+  @@index([stopId], map: "idx_stop_time_stop_id")
+  @@index([arrivalTimestamp, stopId, tripId], map: "idx_stop_time_stop_id_arrival_timestamp_trip")
+  @@map("stop_time")
+}
+
+model Stop {
+  stopId      String     @id @map("stop_id")
+  stopCode    String?    @map("stop_code")
+  stopName    String?    @map("stop_name")
+  stopLat     Float?     @map("stop_lat")
+  stopLon     Float?     @map("stop_lon")
+  stopTime    StopTime[]
+  // stops       Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  // other_stops Stop?      @relation("stopsTostops")
+
+  @@map("stop")
+}
+
+model Trip {
+  routeId       String     @map("route_id")
+  serviceId     String     @map("service_id")
+  tripId        String     @id @map("trip_id")
+  tripHeadsign  String?    @map("trip_headsign")
+  tripShortName String?    @map("trip_short_name")
+  directionId   Int?       @map("direction_id")
+  blockId       String?    @map("block_id")
+  shapeId       String?    @map("shape_id")
+  stopTime      StopTime[]
+  calendar      Calendar   @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+  route         Route      @relation(fields: [routeId], references: [routeId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([shapeId], map: "idx_trips_shape_id")
+  @@index([serviceId], map: "idx_trips_service_id")
+  @@index([routeId], map: "idx_trips_route_id")
+  @@index([directionId], map: "idx_trips_direction_id")
+  @@index([blockId], map: "idx_trips_block_id")
+  @@map("trip")
+}
