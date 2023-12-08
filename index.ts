@@ -5,8 +5,7 @@ import { rename } from "fs/promises";
 import { exec } from "child_process";
 import { downloadFiles } from "./download";
 import { importFile } from "./importFile";
-// import { importFile } from "./importFileCsvEvents";
-// import { importFile } from "./importPipeline";
+
 import { existsSync, mkdirSync } from "fs";
 import prisma from "./client";
 
@@ -22,10 +21,10 @@ const FILE_IMPORT_ORDER = [
 ];
 
 async function main() {
-  // const downloadDir = "./tmp_all";
-  const downloadDir = temporaryDirectory();
-  await downloadFiles(downloadDir);
-  await archiveDB();
+  const downloadDir = "./tmp";
+  // const downloadDir = temporaryDirectory();
+  // await downloadFiles(downloadDir);
+  // await archiveDB();
   await prepareFreshDB();
 
   const t0 = performance.now();
@@ -68,6 +67,17 @@ async function archiveDB() {
 
 async function prepareFreshDB() {
   try {
+    await prisma.$queryRaw`
+      DROP TABLE IF EXISTS agency,
+        calendar,
+        calendar_date,
+        route,
+        shape,
+        stop,
+        stop_time,
+        trip;
+      `;
+
     await new Promise((resolve, reject) => {
       exec("npx prisma db push", (error, stdout, stderr) => {
         if (error || stderr) {
@@ -77,12 +87,6 @@ async function prepareFreshDB() {
         }
       });
     });
-    // vastly speed up insert speed
-    await prisma.$queryRaw`PRAGMA journal_mode = OFF`;
-    await prisma.$queryRaw`PRAGMA synchronous = OFF`;
-    await prisma.$queryRaw`PRAGMA cache_size = 1000000`;
-    await prisma.$queryRaw`PRAGMA locking_mode = EXCLUSIVE`;
-    await prisma.$queryRaw`PRAGMA temp_store = MEMORY`;
   } catch (error) {
     if (error instanceof Error) {
       consola.error(error.message);
