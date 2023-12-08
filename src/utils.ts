@@ -1,8 +1,3 @@
-// Modified from https://stackoverflow.com/questions/15256290/read-the-last-line-of-a-csv-file-and-extract-one-value
-
-import path from "path";
-import { open } from "fs/promises";
-import { CastingFunction } from "csv-parse/.";
 import {
   SnakeCaseModel,
   ModelWithoutId,
@@ -63,41 +58,6 @@ export function padLeadingZeros(time: string | null) {
 
   return split.join(":");
 }
-
-export const castCsvValues: CastingFunction = (value, context) => {
-  switch (context.column) {
-    case "monday":
-    case "tuesday":
-    case "wednesday":
-    case "thursday":
-    case "friday":
-    case "saturday":
-    case "sunday":
-    case "start_date":
-    case "end_date":
-    case "date":
-    case "exception_type":
-    case "route_type":
-    case "shape_pt_lat":
-    case "shape_pt_lon":
-    case "shape_dist_traveled":
-    case "stop_sequence":
-    case "pickup_type":
-    case "drop_off_type":
-    case "timepoint":
-    case "stop_lat":
-    case "stop_lon":
-    case "direction_id":
-      return Number(value);
-
-    // case "arrival_time":
-    // case "departure_time":
-    //   return padLeadingZeros(value);
-
-    default:
-      return value;
-  }
-};
 
 function castColumnValue(key: string, value: string | number | null) {
   switch (key) {
