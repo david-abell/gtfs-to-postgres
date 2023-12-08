@@ -3,7 +3,34 @@
 import path from "path";
 import { open } from "fs/promises";
 import { CastingFunction } from "csv-parse/.";
-import { SnakeCaseModel } from "./prisma/snakeCaseModels";
+import {
+  SnakeCaseModel,
+  ModelWithoutId,
+  CalendarDateWithoutId,
+  ShapeWithoutId,
+  StopTimeWithoutId,
+} from "./prisma/models";
+
+import {
+  Agency,
+  Calendar,
+  CalendarDate,
+  Route,
+  Trip,
+  Stop,
+  Shape,
+  StopTime,
+} from "@prisma/client";
+
+export type FormattedLines =
+  | Agency[]
+  | Calendar[]
+  | CalendarDateWithoutId[]
+  | Route[]
+  | Trip[]
+  | Stop[]
+  | ShapeWithoutId[]
+  | StopTimeWithoutId[];
 
 export async function readLastLine(pathName: string) {
   const newLineCharacters = ["\n", "\r"];
@@ -136,6 +163,7 @@ function castColumnValue(key: string, value: string | number | null) {
     case "route_type":
     case "shape_pt_lat":
     case "shape_pt_lon":
+    case "shape_pt_sequence":
     case "shape_dist_traveled":
     case "stop_sequence":
     case "pickup_type":
@@ -151,65 +179,63 @@ function castColumnValue(key: string, value: string | number | null) {
   }
 }
 
-export function formatLine(
-  csvRecord: SnakeCaseModel
-): (string | number | null)[] {
+export function formatLine(csvRecord: SnakeCaseModel): ModelWithoutId {
   // eslint-disable-next-line prefer-const
   for (let [key, value] of Object.entries(csvRecord)) {
-    value = castColumnValue(key, value);
+    // @ts-expect-error this is the correct key
+    csvRecord[key] = castColumnValue(key, value);
   }
+
   if ("agency_name" in csvRecord) {
-    return [
-      csvRecord.agency_id || null,
-      csvRecord.agency_name,
-      csvRecord.agency_url,
-      csvRecord.agency_timezone,
-    ];
+    return {
+      agencyId: csvRecord.agency_id,
+      agencyName: csvRecord.agency_name,
+      agencyUrl: csvRecord.agency_url,
+      agencyTimezone: csvRecord.agency_timezone,
+    };
   }
 
   if ("monday" in csvRecord) {
-    return [
-      csvRecord.service_id,
-      csvRecord.monday,
-      csvRecord.tuesday,
-      csvRecord.wednesday,
-      csvRecord.thursday,
-      csvRecord.friday,
-      csvRecord.saturday,
-      csvRecord.sunday,
-      csvRecord.start_date,
-      csvRecord.end_date,
-    ];
+    return {
+      serviceId: csvRecord.service_id,
+      monday: csvRecord.monday,
+      tuesday: csvRecord.tuesday,
+      wednesday: csvRecord.wednesday,
+      thursday: csvRecord.thursday,
+      friday: csvRecord.friday,
+      saturday: csvRecord.saturday,
+      sunday: csvRecord.sunday,
+      startDate: csvRecord.start_date,
+      endDate: csvRecord.end_date,
+    };
   }
 
   if ("date" in csvRecord) {
-    return [
-      null,
-      csvRecord.service_id,
-      csvRecord.date,
-      csvRecord.exception_type,
-    ];
+    return {
+      serviceId: csvRecord.service_id,
+      date: csvRecord.date,
+      exceptionType: csvRecord.exception_type,
+    };
   }
 
   if ("route_short_name" in csvRecord) {
-    return [
-      csvRecord.route_id,
-      csvRecord.agency_id || null,
-      csvRecord.route_short_name || null,
-      csvRecord.route_long_name || null,
-      csvRecord.route_type,
-    ];
+    return {
+      routeId: csvRecord.route_id,
+      agencyId: csvRecord.agency_id || null,
+      routeShortName: csvRecord.route_short_name || null,
+      routeLongName: csvRecord.route_long_name || null,
+      routeType: csvRecord.route_type,
+    };
   }
 
   if ("shape_pt_lat" in csvRecord) {
-    return [
-      null,
-      csvRecord.shape_id,
-      csvRecord.shape_pt_lat,
-      csvRecord.shape_pt_lon,
-      csvRecord.shape_pt_sequence,
-      csvRecord.shape_dist_traveled || null,
-    ];
+    return {
+      shapeId: csvRecord.shape_id,
+      shapePtLat: csvRecord.shape_pt_lat,
+      shapePtLon: csvRecord.shape_pt_lon,
+      shapePtSequence: csvRecord.shape_pt_sequence,
+      shapeDistTraveled: csvRecord.shape_dist_traveled || null,
+    };
   }
 
   if ("arrival_time" in csvRecord) {
@@ -224,44 +250,42 @@ export function formatLine(
       csvRecord.departure_time
     );
 
-    return [
-      null,
-      csvRecord.trip_id,
-      csvRecord.arrival_time || null,
-      csvRecord.arrival_timestamp,
-      csvRecord.departure_time || null,
-      csvRecord.departure_timestamp,
-      csvRecord.stop_id,
-      csvRecord.stop_sequence,
-      csvRecord.stop_headsign || null,
-      csvRecord.pickup_type || null,
-      csvRecord.drop_off_type || null,
-      csvRecord.timepoint || null,
-    ];
+    return {
+      tripId: csvRecord.trip_id,
+      arrivalTime: csvRecord.arrival_time || null,
+      arrivalTimestamp: csvRecord.arrival_timestamp,
+      departureTime: csvRecord.departure_time || null,
+      departureTimestamp: csvRecord.departure_timestamp,
+      stopId: csvRecord.stop_id,
+      stopSequence: csvRecord.stop_sequence,
+      stopHeadsign: csvRecord.stop_headsign || null,
+      pickupType: csvRecord.pickup_type || null,
+      dropOffType: csvRecord.drop_off_type || null,
+      timepoint: csvRecord.timepoint || null,
+    };
   }
 
   if ("stop_code" in csvRecord) {
-    return [
-      csvRecord.stop_id,
-      csvRecord.stop_code || null,
-      csvRecord.stop_name || null,
-      csvRecord.stop_lat || null,
-      csvRecord.stop_lon || null,
-    ];
+    return {
+      stopId: csvRecord.stop_id,
+      stopCode: csvRecord.stop_code || null,
+      stopName: csvRecord.stop_name || null,
+      stopLat: csvRecord.stop_lat || null,
+      stopLon: csvRecord.stop_lon || null,
+    };
   }
 
   if ("trip_headsign" in csvRecord) {
-    return [
-      // null,
-      csvRecord.route_id,
-      csvRecord.service_id,
-      csvRecord.trip_id,
-      csvRecord.trip_headsign || null,
-      csvRecord.trip_short_name || null,
-      csvRecord.direction_id || null,
-      csvRecord.block_id || null,
-      csvRecord.shape_id || null,
-    ];
+    return {
+      routeId: csvRecord.route_id,
+      serviceId: csvRecord.service_id,
+      tripId: csvRecord.trip_id,
+      tripHeadsign: csvRecord.trip_headsign || null,
+      tripShortName: csvRecord.trip_short_name || null,
+      directionId: csvRecord.direction_id || null,
+      blockId: csvRecord.block_id || null,
+      shapeId: csvRecord.shape_id || null,
+    };
   }
 
   throw new Error(`Parsing failed for record ${JSON.stringify(csvRecord)}`);
