@@ -32,54 +32,6 @@ export type FormattedLines =
   | ShapeWithoutId[]
   | StopTimeWithoutId[];
 
-export async function readLastLine(pathName: string) {
-  const newLineCharacters = ["\n", "\r"];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const __dirname = path.dirname(process.argv[1]);
-  const fileName = path.join(__dirname, pathName);
-  let line = "";
-  const chunkSize = 200; // How many characters to read from the end of file
-  let fileHandle;
-  let stat;
-  try {
-    fileHandle = await open(fileName, "r");
-
-    stat = await fileHandle.stat();
-    const buf = Buffer.alloc(chunkSize < stat.size ? chunkSize : stat.size);
-    const len = buf.length;
-    const readLength = stat.size - len;
-    const { buffer } = await fileHandle.read(buf, 0, len, readLength);
-
-    for (let i = len - 1; i > -1; i--) {
-      const isEndOfLine =
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        newLineCharacters.indexOf(String.fromCharCode(buffer[i])) >= 0;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const isCtrl = buffer[i] < 0x20; // 0-31 are ASCII control characters
-      if (isEndOfLine && line.length > 0) {
-        break;
-      } else if (!isCtrl && !isEndOfLine) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        line = String.fromCharCode(buffer[i]) + line;
-      }
-    }
-  } catch (err) {
-    if (err instanceof Error)
-      console.error(
-        `Couldn't get previous last modified date for file ${fileName} ${err?.message}`
-      );
-    throw new Error();
-  } finally {
-    await fileHandle?.close();
-  }
-
-  return line;
-}
-
 export function calculateSecondsFromMidnight(time: string | null | undefined) {
   if (!time) return null;
 

@@ -1,8 +1,6 @@
 import { consola } from "consola";
 import { writeFile, appendFile } from "fs/promises";
 import AdmZip from "adm-zip";
-import { readLastLine } from "./utils";
-import { existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -20,15 +18,7 @@ export async function downloadFiles(dirName: string) {
   consola.start(`Downloading GTFS from ${AGENCY_URL}`);
 
   try {
-    let lastLogLine, prevLastModified, prevExpires;
-
-    if (existsSync(LOG_PATH)) {
-      lastLogLine = await readLastLine(LOG_PATH);
-      [prevLastModified, prevExpires] = lastLogLine.split("-");
-    } else {
-      consola.info("no file found, creating new file");
-      await writeFile(LOG_PATH, "");
-    }
+    let prevLastModified, prevExpires;
 
     const response = await fetch(AGENCY_URL, {
       method: "GET",
