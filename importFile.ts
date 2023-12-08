@@ -3,10 +3,20 @@ import { createReadStream, existsSync } from "fs";
 import consola from "consola";
 import { clearLine, cursorTo } from "readline";
 import prisma from "./client";
-import { Prisma } from "@prisma/client";
+import {
+  Agency,
+  Calendar,
+  CalendarDate,
+  Prisma,
+  Route,
+  Shape,
+  Stop,
+  StopTime,
+  Trip,
+} from "@prisma/client";
 import { basename, extname } from "path";
-import { formatLine } from "./utils";
-import { SnakeCaseModel } from "./prisma/snakeCaseModels";
+import { FormattedLines, formatLine } from "./utils";
+import { ModelWithoutId, SnakeCaseModel } from "./prisma/models";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -34,7 +44,7 @@ export async function importFile(filePath: string) {
   }
 
   let totalLineCount = 0;
-  let formattedLines: (string | number | null)[][] = [];
+  let formattedLines: FormattedLines = [];
 
   consola.start(`Importing ${fileName}${extension}`);
 
@@ -47,6 +57,7 @@ export async function importFile(filePath: string) {
       step: async function (results, parser) {
         totalLineCount++;
 
+        // @ts-expect-error test...
         formattedLines.push(formatLine(results.data));
 
         if (formattedLines.length >= BATCH_SIZE / MAX_TABLE_HEADER_COUNT) {
@@ -82,81 +93,59 @@ export async function importFile(filePath: string) {
   });
 }
 
-async function insertLines(
-  formattedValues: (string | number | null)[][],
-  filename: string
-) {
+async function insertLines(formattedValues: FormattedLines, filename: string) {
   // consola.info(JSON.stringify(formattedValues[0]));
-  const values = Prisma.join(
-    formattedValues.map((row) => Prisma.sql`(${Prisma.join(row)})`)
-  );
+  // const values = Prisma.join(
+  //   formattedValues.map((row) => Prisma.sql`(${Prisma.join(row)})`)
+  // );
 
-  switch (filename) {
-    case "agency":
-      await prisma.$queryRaw`
-      INSERT into agency
-      (agency_id, agency_name, agency_url, agency_timezone)
-      VALUES
-      ${values}`;
-      break;
+  if (formattedValues[0] === undefined) return;
 
-    case "calendar_dates":
-      await prisma.$queryRaw`
-      INSERT into calendar_date
-      (id, service_id, date, exception_type)
-      VALUES
-      ${values}`;
-      break;
+  if ("agencyName" in formattedValues[0]) {
+    await prisma.agency.createMany({
+      data: formattedValues as Agency[],
+    });
+  }
 
-    case "calendar":
-      await prisma.$queryRaw`
-      INSERT into calendar
-      (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date)
-      VALUES
-      ${values}`;
-      break;
+  if ("monday" in formattedValues[0]) {
+    await prisma.calendar.createMany({
+      data: formattedValues as Calendar[],
+    });
+  }
 
-    case "routes":
-      await prisma.$queryRaw`
-      INSERT into route
-      (route_id, agency_id, route_short_name, route_long_name, route_type)
-      VALUES
-      ${values}`;
-      break;
+  if ("date" in formattedValues[0]) {
+    await prisma.calendarDate.createMany({
+      data: formattedValues as CalendarDate[],
+    });
+  }
 
-    case "shapes":
-      await prisma.$queryRaw`
-      INSERT into shape
-      (id, shape_id, shape_pt_lat, shape_pt_lon, shape_pt_sequence, shape_dist_traveled)
-      VALUES
-      ${values}`;
-      break;
+  if ("routeShortName" in formattedValues[0]) {
+    await prisma.route.createMany({
+      data: formattedValues as Route[],
+    });
+  }
 
-    case "stop_times":
-      await prisma.$queryRaw`
-      INSERT into stop_time
-      (id, trip_id, arrival_time, arrival_timestamp, departure_time, departure_timestamp, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, timepoint)
-      VALUES
-      ${values}`;
-      break;
+  if ("shapePtLat" in formattedValues[0]) {
+    await prisma.shape.createMany({
+      data: formattedValues as Shape[],
+    });
+  }
 
-    case "stops":
-      await prisma.$queryRaw`
-      INSERT into stop
-      (stop_id, stop_code, stop_name, stop_lat, stop_lon)
-      VALUES
-      ${values}`;
-      break;
+  if ("arrivalTime" in formattedValues[0]) {
+    await prisma.stopTime.createMany({
+      data: formattedValues as StopTime[],
+    });
+  }
 
-    case "trips":
-      await prisma.$queryRaw`
-      INSERT into trip
-      (route_id, service_id, trip_id, trip_headsign, trip_short_name, direction_id, block_id, shape_id)
-      VALUES
-      ${values}`;
-      break;
+  if ("stopCode" in formattedValues[0]) {
+    await prisma.stop.createMany({
+      data: formattedValues as Stop[],
+    });
+  }
 
-    default:
-      throw new Error(`Invalid file name: ${filename}`);
+  if ("tripHeadsign" in formattedValues[0]) {
+    await prisma.trip.createMany({
+      data: formattedValues as Trip[],
+    });
   }
 }
