@@ -9,7 +9,7 @@ import {
   CalendarDateWithoutId,
   ShapeWithoutId,
   StopTimeWithoutId,
-} from "./prisma/models";
+} from "../prisma/models";
 
 import {
   Agency,

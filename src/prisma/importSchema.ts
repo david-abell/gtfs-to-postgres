@@ -2,7 +2,7 @@ import { z } from "zod";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Prisma } from "@prisma/client";
 import { CastingFunction } from "csv-parse/.";
-import { padLeadingZeros } from "../utils";
+import { padLeadingZeros } from "../src/utils";
 
 /////////////////////////////////////////
 // ENUMS

@@ -16,7 +16,7 @@ import {
 } from "@prisma/client";
 import { basename, extname } from "path";
 import { FormattedLines, formatLine } from "./utils";
-import { ModelWithoutId, SnakeCaseModel } from "./prisma/models";
+import { ModelWithoutId, SnakeCaseModel } from "../prisma/models";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
