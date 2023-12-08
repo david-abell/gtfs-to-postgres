@@ -10,7 +10,7 @@ import type { Prisma } from '@prisma/client';
 // ENUMS
 /////////////////////////////////////////
 
-export const TransactionIsolationLevelSchema = z.enum(['Serializable']);
+export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
 export const AgencyScalarFieldEnumSchema = z.enum(['agencyId','agencyName','agencyUrl','agencyTimezone']);
 
@@ -29,6 +29,8 @@ export const StopScalarFieldEnumSchema = z.enum(['stopId','stopCode','stopName',
 export const TripScalarFieldEnumSchema = z.enum(['routeId','serviceId','tripId','tripHeadsign','tripShortName','directionId','blockId','shapeId']);
 
 export const SortOrderSchema = z.enum(['asc','desc']);
+
+export const QueryModeSchema = z.enum(['default','insensitive']);
 
 export const NullsOrderSchema = z.enum(['first','last']);
 /////////////////////////////////////////
