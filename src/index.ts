@@ -53,30 +53,6 @@ async function main() {
 
 main();
 
-async function archiveDB() {
-  // move old gtfs.db to backup dir
-  const backupFileName = `gtfs_${new Date().toJSON().slice(0, 10)}.db`;
-  const today = backupFileName;
-
-  const dbLocation = "./prisma/gtfs.db";
-  const backupLocation = "./prisma/backup/";
-
-  if (!existsSync(backupLocation)) {
-    mkdirSync(backupLocation);
-  }
-  if (existsSync(dbLocation)) {
-    consola.info(`Backing up previous DB to ./prisma/backup/${backupFileName}`);
-    try {
-      await rename(dbLocation, `${backupLocation}${today}`);
-      consola.success("Completed backing up database");
-    } catch (error) {
-      if (error instanceof Error) {
-        consola.error(error.message);
-      }
-    }
-  }
-}
-
 async function prepareFreshDB(pgClient: PoolClient) {
   const sql = readFileSync("./sql/seedTables.sql", "utf8");
   try {
