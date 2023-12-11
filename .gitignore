@@ -48,3 +48,4 @@ GTFSDataLog.txt
 
 /dist
 *.zip
+.vscode
