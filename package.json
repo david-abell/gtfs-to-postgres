@@ -9,7 +9,8 @@
   },
   "scripts": {
     "import": "node --experimental-specifier-resolution=node dist/index ",
-    "build": "npx tsc"
+    "build": "npx tsc && copyfiles -u 1 src/sql/*.sql dist/",
+    "copy-files": "copyfiles -u 1 src/sql/*.sql dist/"
   },
   "author": "",
   "license": "ISC",
@@ -38,6 +39,7 @@
     "@types/node": "^20.4.2",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.44.0"
   }
 }
