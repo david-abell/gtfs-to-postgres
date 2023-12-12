@@ -72,32 +72,27 @@ CREATE TABLE agency (
 
 -- Table: calendar
 CREATE TABLE calendar (
-    service_id INTEGER    NOT NULL
+    service_id TEXT    NOT NULL
                        PRIMARY KEY,
-    monday     TEXT NOT NULL,
-    tuesday    TEXT NOT NULL,
-    wednesday  TEXT NOT NULL,
-    thursday   TEXT NOT NULL,
-    friday     TEXT NOT NULL,
-    saturday   TEXT NOT NULL,
-    sunday     TEXT NOT NULL,
-    start_date DATE NOT NULL,
-    end_date   DATE NOT NULL
+    monday     SMALLINT NOT NULL,
+    tuesday    SMALLINT NOT NULL,
+    wednesday  SMALLINT NOT NULL,
+    thursday   SMALLINT NOT NULL,
+    friday     SMALLINT NOT NULL,
+    saturday   SMALLINT NOT NULL,
+    sunday     SMALLINT NOT NULL,
+    start_date INTEGER NOT NULL,
+    end_date   INTEGER NOT NULL
 );
 
 
 -- Table: calendar_date
 CREATE TABLE calendar_date (
-    service_id     INTEGER    NOT NULL,
-    date           DATE NOT NULL,
+    service_id     TEXT    NOT NULL,
+    date           INTEGER NOT NULL,
     exception_type SMALLINT NOT NULL,
     id             SERIAL NOT NULL
-                           PRIMARY KEY,
-    CONSTRAINT calendar_date_service_id_fkey FOREIGN KEY (
-        service_id
-    )
-    REFERENCES calendar (service_id) ON DELETE NO ACTION
-                                     ON UPDATE NO ACTION
+                           PRIMARY KEY
 );
 
 
@@ -108,36 +103,21 @@ CREATE TABLE route (
     agency_id        TEXT,
     route_short_name TEXT,
     route_long_name  TEXT,
-    route_type       SMALLINT NOT NULL,
-    CONSTRAINT route_agency_id_fkey FOREIGN KEY (
-        agency_id
-    )
-    REFERENCES agency (agency_id) ON DELETE NO ACTION
-                                  ON UPDATE NO ACTION
+    route_type       SMALLINT NOT NULL
 );
 
 
 -- Table: trip
 CREATE TABLE trip (
     route_id        TEXT    NOT NULL,
-    service_id      SMALLINT    NOT NULL,
+    service_id      TEXT    NOT NULL,
     trip_id         TEXT    NOT NULL
                             PRIMARY KEY,
     trip_headsign   TEXT,
     trip_short_name TEXT,
     direction_id    SMALLINT,
     block_id        TEXT,
-    shape_id        TEXT,
-    CONSTRAINT trip_service_id_fkey FOREIGN KEY (
-        service_id
-    )
-    REFERENCES calendar (service_id) ON DELETE NO ACTION
-                                     ON UPDATE NO ACTION,
-    CONSTRAINT trip_route_id_fkey FOREIGN KEY (
-        route_id
-    )
-    REFERENCES route (route_id) ON DELETE NO ACTION
-                                ON UPDATE NO ACTION
+    shape_id        TEXT
 );
 
 
@@ -167,10 +147,10 @@ CREATE TABLE stop (
 -- Table: stop_time
 CREATE TABLE stop_time (
     trip_id             TEXT    NOT NULL,
-    arrival_time        TIME,
-    -- arrival_timestamp   INTEGER,
-    departure_time      TIME,
-    -- departure_timestamp INTEGER,
+    arrival_time        TEXT,
+    arrival_timestamp   INTEGER,
+    departure_time      TEXT,
+    departure_timestamp INTEGER,
     stop_id             TEXT    NOT NULL,
     stop_sequence       SMALLINT NOT NULL,
     stop_headsign       TEXT,
@@ -178,17 +158,7 @@ CREATE TABLE stop_time (
     drop_off_type       SMALLINT,
     timepoint           SMALLINT,
     id                  SERIAL NOT NULL
-                                PRIMARY KEY ,
-    CONSTRAINT stop_time_stop_id_fkey FOREIGN KEY (
-        stop_id
-    )
-    REFERENCES stop (stop_id) ON DELETE NO ACTION
-                              ON UPDATE NO ACTION,
-    CONSTRAINT stop_time_trip_id_fkey FOREIGN KEY (
-        trip_id
-    )
-    REFERENCES trip (trip_id) ON DELETE NO ACTION
-                              ON UPDATE NO ACTION
+                                PRIMARY KEY
 );
 
 
