@@ -1,3 +1,4 @@
+import { fileURLToPath } from "url";
 import {
   SnakeCaseModel,
   ModelWithoutId,
@@ -16,6 +17,7 @@ import {
   Shape,
   StopTime,
 } from "@prisma/client";
+import { dirname, join } from "path";
 
 export type FormattedLines =
   | Agency[]
@@ -201,4 +203,42 @@ export function formatLine(csvRecord: SnakeCaseModel): ModelWithoutId {
   }
 
   throw new Error(`Parsing failed for record ${JSON.stringify(csvRecord)}`);
+}
+
+export function resolveFilePath(filePath: string) {
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const __dirname = dirname(currentFilePath);
+
+  return join(__dirname, filePath);
+}
+
+export function getTableNameAndColumns(filename: string) {
+  switch (filename) {
+    case "agency":
+      return "agency (agency_id, agency_name, agency_url, agency_timezone)";
+
+    case "calendar_dates":
+      return "calendar_date (service_id, date, exception_type)";
+
+    case "calendar":
+      return "calendar (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date)";
+
+    case "routes":
+      return "route (route_id, agency_id, route_short_name, route_long_name, route_type)";
+
+    case "shapes":
+      return "shape (shape_id, shape_pt_lat, shape_pt_lon, shape_pt_sequence, shape_dist_traveled)";
+
+    case "stop_times":
+      return "stop_time (trip_id, arrival_time, arrival_timestamp, departure_time, departure_timestamp, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, timepoint)";
+
+    case "stops":
+      return "stop (stop_id, stop_code, stop_name, stop_lat, stop_lon)";
+
+    case "trips":
+      return "trip (route_id, service_id, trip_id, trip_headsign, trip_short_name, direction_id, block_id, shape_id)";
+
+    default:
+      throw new Error(`Invalid file name: ${filename}`);
+  }
 }
