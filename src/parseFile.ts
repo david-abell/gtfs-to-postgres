@@ -10,7 +10,10 @@ import { basename, extname } from "path";
 import { formatLine, getTableNameAndColumns } from "./utils";
 import { PoolClient } from "pg";
 
-export async function parseFile(sourcePath: string, dbClient: PoolClient) {
+export async function parseAndStreamCSV(
+  sourcePath: string,
+  dbClient: PoolClient
+) {
   const extension = extname(sourcePath);
   const fileName = basename(sourcePath, extension);
 

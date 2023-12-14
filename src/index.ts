@@ -2,7 +2,7 @@ import "dotenv/config";
 import { consola } from "consola";
 import { temporaryDirectory } from "tempy";
 import { downloadFiles } from "./download";
-import { parseFile } from "./parseFile";
+import { parseAndStreamCSV } from "./parseFile";
 
 import { readFileSync } from "fs";
 import pgClientPool from "./pgClientPool";
@@ -32,7 +32,7 @@ async function main() {
 
     console.profile();
     for (const file of FILE_IMPORT_ORDER) {
-      await parseFile(`${downloadDir}/${file}`, pgClient);
+      await parseAndStreamCSV(`${downloadDir}/${file}`, pgClient);
     }
 
     const t1 = performance.now();
