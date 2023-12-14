@@ -1,25 +1,14 @@
 import { consola } from "consola";
-import { writeFile, appendFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import AdmZip from "adm-zip";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const AGENCY_URL =
   "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip";
-
-const GTFS_DATA_LOG = "prisma/GTFSDataLog.txt";
-
-const LOG_PATH = join(__dirname, GTFS_DATA_LOG);
 
 export async function downloadFiles(dirName: string) {
   consola.start(`Downloading GTFS from ${AGENCY_URL}`);
 
   try {
-    let prevLastModified, prevExpires;
-
     const response = await fetch(AGENCY_URL, {
       method: "GET",
     });
@@ -36,19 +25,6 @@ export async function downloadFiles(dirName: string) {
     Last modified: ${lastModified}
     Content Length: ${(Number(contentLength) / (1024 * 1024)).toFixed(2)} MB
     Expires: ${expires}`);
-
-    if (prevLastModified === lastModified) {
-      consola.warn(`Files have not changed since ${lastModified}`);
-      if (expires && prevExpires !== expires) {
-        consola.warn(`Expire date has changed, new expire date is: ${expires}`);
-        await appendFile(LOG_PATH, `${lastModified}-${expires}\n`);
-      }
-      process.exit(0);
-    }
-
-    if (lastModified && lastModified.length && expires && expires.length) {
-      await appendFile(LOG_PATH, `${lastModified}-${expires}\n`);
-    }
 
     const buffer = await response.arrayBuffer();
 
