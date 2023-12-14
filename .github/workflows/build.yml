@@ -20,5 +20,5 @@ jobs:
       - name: Prisma generate and tsc build
         run: |
           npx prisma generate && npm run build
-          env:
-            DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
