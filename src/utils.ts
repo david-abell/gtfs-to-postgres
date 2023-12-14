@@ -1,33 +1,7 @@
 import { fileURLToPath } from "url";
-import {
-  SnakeCaseModel,
-  ModelWithoutId,
-  CalendarDateWithoutId,
-  ShapeWithoutId,
-  StopTimeWithoutId,
-} from "./prisma/models";
+import { SnakeCaseModel, ModelWithoutId } from "./prisma/models";
 
-import {
-  Agency,
-  Calendar,
-  CalendarDate,
-  Route,
-  Trip,
-  Stop,
-  Shape,
-  StopTime,
-} from "@prisma/client";
 import { dirname, join } from "path";
-
-export type FormattedLines =
-  | Agency[]
-  | Calendar[]
-  | CalendarDateWithoutId[]
-  | Route[]
-  | Trip[]
-  | Stop[]
-  | ShapeWithoutId[]
-  | StopTimeWithoutId[];
 
 export function calculateSecondsFromMidnight(time: string | null | undefined) {
   if (!time) return null;
