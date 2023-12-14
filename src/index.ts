@@ -2,7 +2,7 @@ import "dotenv/config";
 import { consola } from "consola";
 import { temporaryDirectory } from "tempy";
 import { downloadFiles } from "./download";
-import { parseAndStreamCSV } from "./parseFile";
+import { parseAndStreamCSV } from "./parseAndStreamCSV";
 
 import { readFileSync } from "fs";
 import pgClientPool from "./pgClientPool";
