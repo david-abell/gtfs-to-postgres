@@ -108,6 +108,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            ls .
             const { default: updateDB } = await import("${{github.workspace}}/dist/index.js")
 
             await updateDB()
