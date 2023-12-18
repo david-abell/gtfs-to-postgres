@@ -59,8 +59,13 @@ jobs:
         id: outputArtifact
         shell: bash
         run: |
-          value=$(head -1 artifact/database_last_modified_date.txt)
-          echo "prevLastModified=\$value" >> $GITHUB_OUTPUT
+          if test -f "artifact/database_last_modified_date.txt"
+          then
+            value=$(head -1 artifact/database_last_modified_date.txt)
+            echo "prevLastModified=\$value" >> $GITHUB_OUTPUT
+          else
+          value="no_artifact_file"
+          fi
           echo "PreviousLastmodified is: " $value
 
   updateScheduleDB:
