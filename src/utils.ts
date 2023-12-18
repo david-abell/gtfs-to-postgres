@@ -1,5 +1,5 @@
 import { fileURLToPath } from "url";
-import { SnakeCaseModel, ModelWithoutId } from "./prisma/models";
+import { SnakeCaseModel, ModelWithoutId } from "./prisma/models.js";
 
 import { dirname, join } from "path";
 

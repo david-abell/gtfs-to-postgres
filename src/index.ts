@@ -1,13 +1,13 @@
 import "dotenv/config";
 import { consola } from "consola";
 import { temporaryDirectory } from "tempy";
-import { downloadFiles } from "./download";
-import { parseAndStreamCSV } from "./parseAndStreamCSV";
+import { downloadFiles } from "./download.js";
+import { parseAndStreamCSV } from "./parseAndStreamCSV.js";
 
 import { readFileSync } from "fs";
-import pgClientPool from "./pgClientPool";
+import pgClientPool from "./pgClientPool.js";
 import { PoolClient } from "pg";
-import { resolveFilePath } from "./utils";
+import { resolveFilePath } from "./utils.js";
 
 const FILE_IMPORT_ORDER = [
   "agency.txt",
