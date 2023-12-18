@@ -19,7 +19,8 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci && echo working dir is: ${{ github.workspace }}
       - name: Prisma generate and tsc build
         run: |
           npx prisma generate && npm run build
