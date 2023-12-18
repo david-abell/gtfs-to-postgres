@@ -102,13 +102,13 @@ jobs:
         if: env.SHOULD_UPDATE == 'true'
         run: |
           npx prisma generate --schema="${{ github.workspace }}/src/prisma/schema.prisma" && npm run build
+          ls
 
       - name: Rebuild database
         if: env.SHOULD_UPDATE == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            ls .
             const { default: updateDB } = await import("${{github.workspace}}/dist/index.js")
 
             await updateDB()
