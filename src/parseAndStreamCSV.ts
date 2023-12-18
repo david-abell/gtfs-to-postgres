@@ -7,7 +7,7 @@ import { pipeline } from "stream/promises";
 import { from } from "pg-copy-streams";
 
 import { basename, extname } from "path";
-import { formatLine, getTableNameAndColumns } from "./utils";
+import { formatLine, getTableNameAndColumns } from "./utils.js";
 import { PoolClient } from "pg";
 
 export async function parseAndStreamCSV(
