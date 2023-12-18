@@ -72,12 +72,28 @@ jobs:
         if: env.SHOULD_UPDATE != 'true'
         run: echo "No changes found on main or last_modifed. Update not triggered"
 
-      - name: Update?
+      - name: Setup Node.js
+        if: env.SHOULD_UPDATE == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        if: env.SHOULD_UPDATE == 'true'
+        run: |
+          npm ci
+
+      - name: Build
+        if: env.SHOULD_UPDATE == 'true'
+        run: |
+          npx prisma generate --schema="${{ github.workspace }}/src/prisma/schema.prisma" && npm run build
+
+      - name: Rebuild database
         if: env.SHOULD_UPDATE == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            const { default: updateDB } = await import('${{ github.workspace }}/dist/index.js')
+            const { default: updateDB } = await import('./dist/index.js')
 
             await updateDB()
         env:
