@@ -23,4 +23,4 @@ jobs:
           npm ci && echo working dir is: ${{ github.workspace }}
       - name: Prisma generate and tsc build
         run: |
-          npx prisma generate && npm run build
+          npx prisma generate --schema="${{ github.workspace }}/src/prisma/schema.prisma" && npm run build
