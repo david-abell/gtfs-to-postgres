@@ -3,9 +3,18 @@ name: Check GTFS schedule & update database
 on:
   schedule:
     - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      force_update:
+        type: choice
+        description: "Force update"
+        default: "false"
+        options:
+          - true
+          - false
 
 env:
-  SHOULD_UPDATE: "false"
+  SHOULD_UPDATE: ${{ github.event.inputs.force_update }}
 
 jobs:
   get-api-headers:
@@ -63,8 +72,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set env SHOULD_UPDATE
+        if: env.SHOULD_UPDATE != 'true'
         run: |
-          if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
+          if [[ env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
             echo "SHOULD_UPDATE=true" >> $GITHUB_ENV
           fi
 
