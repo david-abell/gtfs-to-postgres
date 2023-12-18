@@ -103,6 +103,7 @@ jobs:
         run: |
           npx prisma generate --schema="${{ github.workspace }}/src/prisma/schema.prisma" && npm run build
           ls
+          echo github.workspace
 
       - name: Rebuild database
         if: env.SHOULD_UPDATE == 'true'
