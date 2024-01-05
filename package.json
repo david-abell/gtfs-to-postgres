@@ -41,5 +41,8 @@
     "@typescript-eslint/parser": "^6.0.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.44.0"
+  },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
   }
 }
