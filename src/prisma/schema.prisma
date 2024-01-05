@@ -132,3 +132,9 @@ model Trip {
   @@index([blockId], map: "idx_trips_block_id")
   @@map("trip")
 }
+
+model api_log {
+  last_modified_date DateTime @db.Timestamptz(6)
+  expires            DateTime @db.Timestamptz(6)
+  id                 Int      @id @default(autoincrement())
+}
