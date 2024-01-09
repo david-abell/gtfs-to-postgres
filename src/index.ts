@@ -46,11 +46,10 @@ async function main() {
       await parseAndStreamCSV(`${downloadDir}/${file}`, pgClient);
     }
 
-    const t1 = performance.now();
-
     await finalizeTables(pgClient);
     await updateApiLogOnSuccess(pgClient, [lastModified, expires]);
 
+    const t1 = performance.now();
     consola.info(`Importing files took ${(t1 - t0) / 1000} seconds.`);
   } catch (error) {
     exitCode = 1;
