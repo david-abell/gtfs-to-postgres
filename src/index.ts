@@ -6,7 +6,7 @@ import { parseAndStreamCSV } from "./parseAndStreamCSV.js";
 
 import { readFileSync, existsSync } from "fs";
 import pgClientPool from "./pgClientPool.js";
-import { PoolClient } from "pg";
+import { DatabaseError, PoolClient } from "pg";
 import { resolveFilePath } from "./utils.js";
 import { rimraf } from "rimraf";
 
@@ -72,14 +72,29 @@ async function main() {
 main();
 
 async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
-  const sql = "SELECT MAX(expires) from api_update_log;";
+  try {
+    const sql = "SELECT MAX(expires) from api_update_log;";
 
-  const lastUpdateLog = await pgClient.query<{ max: string }>(sql);
+    const lastUpdateLog = await pgClient.query<{ max: string }>(sql);
+    console.log(lastUpdateLog);
 
-  if (lastUpdateLog.rows[0]?.max) {
-    const currentUpdate = new Date(lastModified).getTime();
-    const lastUpdate = new Date(lastUpdateLog.rows[0].max).getTime();
-    return currentUpdate > lastUpdate;
+    if (lastUpdateLog.rows[0]?.max) {
+      const currentUpdate = new Date(lastModified).getTime();
+      const lastUpdate = new Date(lastUpdateLog.rows[0].max).getTime();
+      return currentUpdate > lastUpdate;
+    }
+  } catch (error) {
+    if (error instanceof DatabaseError) {
+      // PostgreSQL 42P01 UNDEFINED TABLE error indicates that the table referenced in the query does not exist in the database
+      // Continue with update as prepareFreshDB() will will create the table with seedTables.sql.
+      if (error.code === "42P01") return true;
+    } else if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error(
+        "An unknown error occurred while querying the last_update_log table."
+      );
+    }
   }
 
   return true;

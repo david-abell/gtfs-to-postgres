@@ -61,6 +61,15 @@ DROP INDEX IF EXISTS idx_trips_shape_id;
 
 
 -- Table: agency
+CREATE TABLE IF NOT EXISTS api_update_log (
+    last_modified_date  TIMESTAMPTZ,
+    expires             TIMESTAMPTZ,
+    id                  SERIAL  NOT NULL
+                                PRIMARY KEY
+
+);
+
+-- Table: agency
 CREATE TABLE agency (
     agency_id       TEXT NOT NULL
                          PRIMARY KEY,
