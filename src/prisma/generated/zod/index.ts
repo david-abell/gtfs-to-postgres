@@ -5,6 +5,24 @@ import type { Prisma } from '@prisma/client';
 // HELPER FUNCTIONS
 /////////////////////////////////////////
 
+// DECIMAL
+//------------------------------------------------------
+
+export const DecimalJSLikeSchema: z.ZodType<Prisma.DecimalJsLike> = z.object({ d: z.array(z.number()), e: z.number(), s: z.number(), toFixed: z.function().args().returns(z.string()), });
+
+export const DecimalJSLikeListSchema: z.ZodType<Prisma.DecimalJsLike[]> = z.object({ d: z.array(z.number()), e: z.number(), s: z.number(), toFixed: z.function().args().returns(z.string()), }).array();
+
+export const DECIMAL_STRING_REGEX = /^[0-9.,e+-bxffo_cp]+$|Infinity|NaN/;
+
+export const isValidDecimalInput =
+  (v?: null | string | number | Prisma.DecimalJsLike): v is string | number | Prisma.DecimalJsLike => {
+    if (v === undefined || v === null) return false;
+    return (
+      (typeof v === 'object' && 'd' in v && 'e' in v && 's' in v && 'toFixed' in v) ||
+      (typeof v === 'string' && DECIMAL_STRING_REGEX.test(v)) ||
+      typeof v === 'number'
+    )
+  };
 
 /////////////////////////////////////////
 // ENUMS
@@ -16,17 +34,19 @@ export const AgencyScalarFieldEnumSchema = z.enum(['agencyId','agencyName','agen
 
 export const CalendarScalarFieldEnumSchema = z.enum(['serviceId','monday','tuesday','wednesday','thursday','friday','saturday','sunday','startDate','endDate']);
 
-export const CalendarDateScalarFieldEnumSchema = z.enum(['id','serviceId','date','exceptionType']);
+export const CalendarDateScalarFieldEnumSchema = z.enum(['serviceId','date','exceptionType','id']);
 
 export const RouteScalarFieldEnumSchema = z.enum(['routeId','agencyId','routeShortName','routeLongName','routeType']);
 
-export const ShapeScalarFieldEnumSchema = z.enum(['id','shapeId','shapePtLat','shapePtLon','shapePtSequence','shapeDistTraveled']);
+export const ShapeScalarFieldEnumSchema = z.enum(['shapeId','shapePtLat','shapePtLon','shapePtSequence','shapeDistTraveled','id']);
 
-export const StopTimeScalarFieldEnumSchema = z.enum(['id','tripId','arrivalTime','arrivalTimestamp','departureTime','departureTimestamp','stopId','stopSequence','stopHeadsign','pickupType','dropOffType','timepoint']);
+export const StopTimeScalarFieldEnumSchema = z.enum(['tripId','arrivalTime','arrivalTimestamp','departureTime','departureTimestamp','stopId','stopSequence','stopHeadsign','pickupType','dropOffType','timepoint','id']);
 
 export const StopScalarFieldEnumSchema = z.enum(['stopId','stopCode','stopName','stopLat','stopLon']);
 
 export const TripScalarFieldEnumSchema = z.enum(['routeId','serviceId','tripId','tripHeadsign','tripShortName','directionId','blockId','shapeId']);
+
+export const ApiUpdateLogScalarFieldEnumSchema = z.enum(['last_modified_date','expires','id']);
 
 export const SortOrderSchema = z.enum(['asc','desc']);
 
@@ -74,10 +94,10 @@ export type Calendar = z.infer<typeof CalendarSchema>
 /////////////////////////////////////////
 
 export const CalendarDateSchema = z.object({
-  id: z.number().int(),
   serviceId: z.string(),
   date: z.number().int(),
   exceptionType: z.number().int(),
+  id: z.number().int(),
 })
 
 export type CalendarDate = z.infer<typeof CalendarDateSchema>
@@ -101,12 +121,12 @@ export type Route = z.infer<typeof RouteSchema>
 /////////////////////////////////////////
 
 export const ShapeSchema = z.object({
-  id: z.number().int(),
   shapeId: z.string(),
-  shapePtLat: z.number(),
-  shapePtLon: z.number(),
+  shapePtLat: z.union([z.number(),z.string(),DecimalJSLikeSchema,]).refine((v) => isValidDecimalInput(v), { message: "Field 'shapePtLat' must be a Decimal. Location: ['Models', 'Shape']",  }),
+  shapePtLon: z.union([z.number(),z.string(),DecimalJSLikeSchema,]).refine((v) => isValidDecimalInput(v), { message: "Field 'shapePtLon' must be a Decimal. Location: ['Models', 'Shape']",  }),
   shapePtSequence: z.number().int(),
   shapeDistTraveled: z.number().nullable(),
+  id: z.number().int(),
 })
 
 export type Shape = z.infer<typeof ShapeSchema>
@@ -116,7 +136,6 @@ export type Shape = z.infer<typeof ShapeSchema>
 /////////////////////////////////////////
 
 export const StopTimeSchema = z.object({
-  id: z.number().int(),
   tripId: z.string(),
   arrivalTime: z.string().nullable(),
   arrivalTimestamp: z.number().int().nullable(),
@@ -128,6 +147,7 @@ export const StopTimeSchema = z.object({
   pickupType: z.number().int().nullable(),
   dropOffType: z.number().int().nullable(),
   timepoint: z.number().int().nullable(),
+  id: z.number().int(),
 })
 
 export type StopTime = z.infer<typeof StopTimeSchema>
@@ -140,8 +160,8 @@ export const StopSchema = z.object({
   stopId: z.string(),
   stopCode: z.string().nullable(),
   stopName: z.string().nullable(),
-  stopLat: z.number().nullable(),
-  stopLon: z.number().nullable(),
+  stopLat: z.union([z.number(),z.string(),DecimalJSLikeSchema,]).refine((v) => isValidDecimalInput(v), { message: "Field 'stopLat' must be a Decimal. Location: ['Models', 'Stop']",  }).nullable(),
+  stopLon: z.union([z.number(),z.string(),DecimalJSLikeSchema,]).refine((v) => isValidDecimalInput(v), { message: "Field 'stopLon' must be a Decimal. Location: ['Models', 'Stop']",  }).nullable(),
 })
 
 export type Stop = z.infer<typeof StopSchema>
@@ -162,3 +182,15 @@ export const TripSchema = z.object({
 })
 
 export type Trip = z.infer<typeof TripSchema>
+
+/////////////////////////////////////////
+// API UPDATE LOG SCHEMA
+/////////////////////////////////////////
+
+export const ApiUpdateLogSchema = z.object({
+  last_modified_date: z.coerce.date(),
+  expires: z.coerce.date(),
+  id: z.number().int(),
+})
+
+export type ApiUpdateLog = z.infer<typeof ApiUpdateLogSchema>

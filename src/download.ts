@@ -8,45 +8,45 @@ const AGENCY_URL =
 export async function downloadFiles(dirName: string) {
   consola.start(`Downloading GTFS from ${AGENCY_URL}`);
 
-  try {
-    const response = await fetch(AGENCY_URL, {
-      method: "GET",
-    });
+  const response = await fetch(AGENCY_URL, {
+    method: "GET",
+  });
 
-    if (response.status !== 200) {
-      throw new Error("Couldn’t download files");
-    }
+  if (response.status !== 200) {
+    throw new Error(`${response.status}: ${response.statusText}`);
+  }
 
-    const lastModified = response.headers.get("last-modified");
-    const contentLength = response.headers.get("content-length");
-    const expires = response.headers.get("expires");
+  const lastModified = response.headers.get("last-modified");
+  const contentLength = response.headers.get("content-length");
+  const expires = response.headers.get("expires");
 
-    consola.success(`Download successfull:
+  if (!lastModified || !expires) {
+    throw new Error(
+      `Error getting response headers: last-modified: ${lastModified}, expires: ${expires}`
+    );
+  }
+
+  consola.success(`Download successful:
     Last modified: ${lastModified}
     Content Length: ${(Number(contentLength) / (1024 * 1024)).toFixed(2)} MB
     Expires: ${expires}`);
 
-    const buffer = await response.arrayBuffer();
+  const buffer = await response.arrayBuffer();
 
-    const zipped = new AdmZip(Buffer.from(buffer));
+  const zipped = new AdmZip(Buffer.from(buffer));
 
-    let fileCount = 0;
+  let fileCount = 0;
 
-    for (const file of zipped.getEntries()) {
-      const { entryName } = file;
+  for (const file of zipped.getEntries()) {
+    const { entryName } = file;
 
-      consola.info(`Extracting ${entryName} to ${dirName}/${entryName}`);
+    consola.info(`Extracting ${entryName} to ${dirName}/${entryName}`);
 
-      await writeFile(`${dirName}/${entryName}`, file.getData());
+    await writeFile(`${dirName}/${entryName}`, file.getData());
 
-      fileCount += 1;
-    }
-
-    consola.success(`Finished writing ${fileCount} files.`);
-  } catch (error) {
-    if (error instanceof Error) {
-      consola.error(new Error(error.message));
-      process.exit(1);
-    }
+    fileCount += 1;
   }
+
+  consola.success(`Finished writing ${fileCount} files.`);
+  return { lastModified, expires };
 }

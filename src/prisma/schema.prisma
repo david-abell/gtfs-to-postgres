@@ -133,8 +133,9 @@ model Trip {
   @@map("trip")
 }
 
-model api_log {
+model ApiUpdateLog {
   last_modified_date DateTime @db.Timestamptz(6)
   expires            DateTime @db.Timestamptz(6)
   id                 Int      @id @default(autoincrement())
+  @@map("api_update_log")
 }
