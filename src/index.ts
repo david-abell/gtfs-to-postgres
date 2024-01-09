@@ -6,7 +6,8 @@ import { parseAndStreamCSV } from "./parseAndStreamCSV.js";
 
 import { readFileSync, existsSync } from "fs";
 import pgClientPool from "./pgClientPool.js";
-import { DatabaseError, PoolClient } from "pg";
+import { PoolClient } from "pg";
+import { DatabaseError } from "pg-protocol";
 import { resolveFilePath } from "./utils.js";
 import { rimraf } from "rimraf";
 
@@ -76,7 +77,6 @@ async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
     const sql = "SELECT MAX(expires) from api_update_log;";
 
     const lastUpdateLog = await pgClient.query<{ max: string }>(sql);
-    console.log(lastUpdateLog);
 
     if (lastUpdateLog.rows[0]?.max) {
       const currentUpdate = new Date(lastModified).getTime();
