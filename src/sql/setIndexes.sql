@@ -94,9 +94,9 @@ CREATE INDEX idx_trips_block_id ON trip (
 -- Index: idx_trips_direction_id
 DROP INDEX IF EXISTS idx_trips_direction_id;
 
-CREATE INDEX idx_trips_direction_id ON trip (
-    "direction_id"
-);
+-- CREATE INDEX idx_trips_direction_id ON trip (
+--     "direction_id"
+-- );
 
 
 -- Index: idx_trips_route_id

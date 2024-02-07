@@ -128,7 +128,7 @@ model Trip {
   @@index([shapeId], map: "idx_trips_shape_id")
   @@index([serviceId], map: "idx_trips_service_id")
   @@index([routeId], map: "idx_trips_route_id")
-  @@index([directionId], map: "idx_trips_direction_id")
+  // @@index([directionId], map: "idx_trips_direction_id")
   @@index([blockId], map: "idx_trips_block_id")
   @@map("trip")
 }
