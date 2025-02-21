@@ -17,96 +17,97 @@ env:
   SHOULD_UPDATE: ${{ github.event.inputs.force_update }}
 
 jobs:
-  get-api-headers:
-    runs-on: ubuntu-latest
-    outputs:
-      lastModified: ${{ steps.setlastModified.outputs.lastModified }}
-    steps:
-      - name: Make get request
-        id: getRequest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
-          method: "GET"
+  # get-api-headers:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     lastModified: ${{ steps.setlastModified.outputs.lastModified }}
+  #   steps:
+  #     - name: Make get request
+  #       id: getRequest
+  #       uses: fjogeleit/http-request-action@v1
+  #       with:
+  #         url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
+  #         method: "GET"
 
-      - name: Set last modified
-        id: setlastModified
-        run: |
-          echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
-          echo lastModified is: "'${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'"
+  #     - name: Set last modified
+  #       id: setlastModified
+  #       run: |
+  #         echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+  #         echo lastModified is: "'${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'"
 
-  import-previous-header-value:
-    runs-on: ubuntu-latest
-    outputs:
-      prevLastModified: ${{ steps.outputArtifact.outputs.prevLastModified }}
-    steps:
-      - uses: actions/checkout@v3
+  # import-previous-header-value:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     prevLastModified: ${{ steps.outputArtifact.outputs.prevLastModified }}
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Download artifact
-        uses: actions/github-script@v6
-        continue-on-error: true
-        env:
-          WORKFLOW_FILENAME: deploy.yml
-          ARTIFACT_NAME: database_last_modified_date
-          ARTIFACT_FILENAME: database_last_modified_date.zip
-          UNZIP_DIR: artifact
-        with:
-          script: |
-            const script = require('./.github/scripts/getArtifact.cjs')
-            await script({github, context, core})
+  #     - name: Download artifact
+  #       uses: actions/github-script@v6
+  #       continue-on-error: true
+  #       env:
+  #         WORKFLOW_FILENAME: deploy.yml
+  #         ARTIFACT_NAME: database_last_modified_date
+  #         ARTIFACT_FILENAME: database_last_modified_date.zip
+  #         UNZIP_DIR: artifact
+  #       with:
+  #         script: |
+  #           const script = require('./.github/scripts/getArtifact.cjs')
+  #           await script({github, context, core})
 
-      - name: Output artifact
-        id: outputArtifact
-        shell: bash
-        run: |
-          if test -f "artifact/database_last_modified_date.txt"
-          then
-            value=$(head -1 artifact/database_last_modified_date.txt)
-            echo "prevLastModified=\$value" >> $GITHUB_OUTPUT
-          else
-          value="no_artifact_file"
-          fi
-          echo "PreviousLastmodified is: " $value
+  #     - name: Output artifact
+  #       id: outputArtifact
+  #       shell: bash
+  #       run: |
+  #         if test -f "artifact/database_last_modified_date.txt"
+  #         then
+  #           value=$(head -1 artifact/database_last_modified_date.txt)
+  #           echo "prevLastModified=\$value" >> $GITHUB_OUTPUT
+  #         else
+  #         value="no_artifact_file"
+  #         fi
+  #         echo "PreviousLastmodified is: " $value
 
   updateScheduleDB:
     runs-on: ubuntu-latest
-    needs: [get-api-headers, import-previous-header-value]
-    env:
-      LAST_MODIFIED: ${{needs.get-api-headers.outputs.lastModified}}
-      PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
+    # needs: [import-previous-header-value]
+    # needs: [get-api-headers, import-previous-header-value]
+    # env:
+    #   LAST_MODIFIED: ${{needs.get-api-headers.outputs.lastModified}}
+    #   PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set env SHOULD_UPDATE
-        if: env.SHOULD_UPDATE != 'true'
-        run: |
-          if [[ env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
-            echo "SHOULD_UPDATE=true" >> $GITHUB_ENV
-          fi
+      # - name: Set env SHOULD_UPDATE
+      #   if: env.SHOULD_UPDATE != 'true'
+      #   run: |
+      #     if [[ env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
+      #       echo "SHOULD_UPDATE=true" >> $GITHUB_ENV
+      #     fi
 
-      - name: Skip Update?
-        if: env.SHOULD_UPDATE != 'true'
-        run: echo "No changes found on main or last_modifed. Update not triggered"
+      # - name: Skip Update?
+      #   if: env.SHOULD_UPDATE != 'true'
+      #   run: echo "No changes found on main or last_modifed. Update not triggered"
 
       - name: Setup Node.js
-        if: env.SHOULD_UPDATE == 'true'
+        # if: env.SHOULD_UPDATE == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Install dependencies
-        if: env.SHOULD_UPDATE == 'true'
+        # if: env.SHOULD_UPDATE == 'true'
         run: |
           npm ci
 
       - name: Build
-        if: env.SHOULD_UPDATE == 'true'
+        # if: env.SHOULD_UPDATE == 'true'
         run: |
           npx prisma generate --schema="${{ github.workspace }}/src/prisma/schema.prisma" && npm run build
           cd ${{ github.workspace }}/dist
           ls
 
       - name: Rebuild database
-        if: env.SHOULD_UPDATE == 'true'
+        # if: env.SHOULD_UPDATE == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -116,24 +117,24 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-  save-new-header-value:
-    runs-on: ubuntu-latest
-    needs: [import-previous-header-value, get-api-headers, updateScheduleDB]
-    env:
-      LAST_MODIFIED: ${{ needs.get-api-headers.outputs.lastModified }}
-      PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
-    steps:
-      - name: Write new file
-        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
-        shell: bash
-        run: |
-          touch database_last_modified_date.txt
-          value="$LAST_MODIFIED"
-          echo "${value}" > database_last_modified_date.txt
+  # save-new-header-value:
+  #   runs-on: ubuntu-latest
+  #   needs: [import-previous-header-value, get-api-headers, updateScheduleDB]
+  #   env:
+  #     LAST_MODIFIED: ${{ needs.get-api-headers.outputs.lastModified }}
+  #     PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
+  #   steps:
+  #     - name: Write new file
+  #       if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+  #       shell: bash
+  #       run: |
+  #         touch database_last_modified_date.txt
+  #         value="$LAST_MODIFIED"
+  #         echo "${value}" > database_last_modified_date.txt
 
-      - name: Save file as artifact
-        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
-        uses: actions/upload-artifact@v3
-        with:
-          name: database_last_modified_date
-          path: database_last_modified_date.txt
+  #     - name: Save file as artifact
+  #       if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: database_last_modified_date
+  #         path: database_last_modified_date.txt
