@@ -22,7 +22,7 @@ const FILE_IMPORT_ORDER = [
   "stop_times.txt",
 ];
 
-async function main(forceUpdate: boolean) {
+export async function updateDB(forceUpdate: boolean) {
   let exitCode = 0;
   const downloadDir = temporaryDirectory();
   let pgClient: PoolClient | undefined;
@@ -70,7 +70,7 @@ async function main(forceUpdate: boolean) {
   }
 }
 
-main();
+// updateDB(true);
 
 async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
   try {
