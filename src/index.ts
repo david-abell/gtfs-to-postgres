@@ -73,13 +73,16 @@ main();
 
 async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
   try {
-    const sql = "SELECT MAX(last_modified_date) from api_update_log;";
+    const sql = "SELECT MAX(expires) from api_update_log;";
 
-    const lastUpdateLog = await pgClient.query<{ max: string }>(sql);
+    const lastExpiresRecord = await pgClient.query<{ max: string }>(sql);
 
-    if (lastUpdateLog.rows[0]?.max) {
+    if (lastExpiresRecord.rows[0]?.max) {
       const currentUpdate = new Date(lastModified).getTime();
-      const lastUpdate = new Date(lastUpdateLog.rows[0].max).getTime();
+      const lastUpdate = new Date(lastExpiresRecord.rows[0].max).getTime();
+      consola.info(`Comparing updates: 
+        Current update: ${currentUpdate}
+        Last update expire: ${lastUpdate}`);
       return currentUpdate > lastUpdate;
     }
   } catch (error) {
