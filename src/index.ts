@@ -22,7 +22,7 @@ const FILE_IMPORT_ORDER = [
   "stop_times.txt",
 ];
 
-async function main() {
+async function main(forceUpdate: boolean) {
   let exitCode = 0;
   const downloadDir = temporaryDirectory();
   let pgClient: PoolClient | undefined;
@@ -33,7 +33,8 @@ async function main() {
     const t0 = performance.now();
     pgClient = await pgClientPool.connect();
 
-    const shouldUpdate = await compareLastUpdates(pgClient, lastModified);
+    const shouldUpdate =
+      forceUpdate || (await compareLastUpdates(pgClient, lastModified));
 
     if (!shouldUpdate) {
       consola.info("Database is still current. Skipping update...");
