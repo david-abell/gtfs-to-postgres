@@ -41,15 +41,14 @@ export async function parseAndStreamCSV(
 
   let count = 0;
 
-  const throttler = transform(async (record) => {
+  const throttler = transform((record, callback) => {
     count++;
 
-    // Pause every 10k rows
     if (count % 10000 === 0) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      setTimeout(() => callback(null, record), 100);
+    } else {
+      callback(null, record);
     }
-
-    return record;
   });
 
   const transformer = transform((record) => {
