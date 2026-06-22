@@ -12,7 +12,7 @@ import { PoolClient } from "pg";
 
 export async function parseAndStreamCSV(
   sourcePath: string,
-  dbClient: PoolClient
+  dbClient: PoolClient,
 ) {
   const extension = extname(sourcePath);
   const fileName = basename(sourcePath, extension);
@@ -23,7 +23,7 @@ export async function parseAndStreamCSV(
 
   if (extension !== ".txt") {
     throw new Error(
-      `Expected .txt file extension for file ${sourcePath}, found extension ${extension}`
+      `Expected .txt file extension for file ${sourcePath}, found extension ${extension}`,
     );
   }
 
@@ -39,15 +39,35 @@ export async function parseAndStreamCSV(
     skip_empty_lines: true,
   });
 
+  let count = 0;
+
+  const throttler = transform(async (record) => {
+    count++;
+
+    // Pause every 10k rows
+    if (count % 10000 === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    return record;
+  });
+
   const transformer = transform((record) => {
     return formatLine(record);
   });
 
   const readStream = createReadStream(sourcePath, "utf-8");
   const ingestStream = dbClient.query(
-    from(`COPY ${tableNameAndColumns} FROM STDIN WITH (FORMAT CSV)`)
+    from(`COPY ${tableNameAndColumns} FROM STDIN WITH (FORMAT CSV)`),
   );
 
-  await pipeline(readStream, parser, transformer, stringify(), ingestStream);
+  await pipeline(
+    readStream,
+    parser,
+    throttler,
+    transformer,
+    stringify(),
+    ingestStream,
+  );
   consola.success(`Finished writing records to table ${fileName}.`);
 }

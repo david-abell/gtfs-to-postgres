@@ -3,7 +3,6 @@
 --
 -- Text encoding used: System
 --
-BEGIN TRANSACTION;
 
 -- Table: agency
 
@@ -63,5 +62,3 @@ ALTER TABLE stop_time
                               ON UPDATE NO ACTION
 ;
 
-
-COMMIT TRANSACTION;

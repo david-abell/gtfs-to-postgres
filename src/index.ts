@@ -45,6 +45,8 @@ export async function updateDB(forceUpdate: boolean) {
 
     for (const file of FILE_IMPORT_ORDER) {
       await parseAndStreamCSV(`${downloadDir}/${file}`, pgClient);
+
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // pause for wal catchup
     }
 
     await finalizeTables(pgClient);
@@ -79,12 +81,16 @@ async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
     const lastExpiresRecord = await pgClient.query<{ max: string }>(sql);
 
     if (lastExpiresRecord.rows[0]?.max) {
-      const currentUpdate = new Date(lastModified).getTime();
-      const lastUpdate = new Date(lastExpiresRecord.rows[0].max).getTime();
+      const currentUpdateDate = new Date(lastModified);
+      const currentUpdateMillis = currentUpdateDate.getTime();
+
+      const lastUpdateDate = new Date(lastExpiresRecord.rows[0].max);
+      const lastUpdateMillis = lastUpdateDate.getTime();
+
       consola.info(`Comparing updates: 
-        Current update: ${currentUpdate}
-        Last update expire: ${lastUpdate}`);
-      return currentUpdate > lastUpdate;
+        Current update: ${currentUpdateMillis}
+        Last update expire: ${lastUpdateMillis}`);
+      return currentUpdateMillis > lastUpdateMillis;
     }
   } catch (error) {
     if (error instanceof DatabaseError) {
@@ -95,7 +101,7 @@ async function compareLastUpdates(pgClient: PoolClient, lastModified: string) {
       throw new Error(error.message);
     } else {
       throw new Error(
-        "An unknown error occurred while querying the last_update_log table."
+        "An unknown error occurred while querying the last_update_log table.",
       );
     }
   }
@@ -107,15 +113,15 @@ type ApiUpdateLogValues = [string, string];
 
 async function updateApiLogOnSuccess(
   pgClient: PoolClient,
-  apiUpdateLogValues: ApiUpdateLogValues
+  apiUpdateLogValues: ApiUpdateLogValues,
 ) {
   const isSuccess = await pgClient.query<{ exists: boolean }>(
-    `select exists (select 1 from stop_time);`
+    `select exists (select 1 from stop_time);`,
   );
 
   if (!isSuccess || !isSuccess.rows[0]?.exists) {
     throw new Error(
-      "Update not successful. No existing rows found when Querying table 'stop_time'."
+      "Update not successful. No existing rows found when Querying table 'stop_time'.",
     );
   }
 
@@ -140,7 +146,7 @@ async function prepareFreshDB(pgClient: PoolClient) {
 async function finalizeTables(pgClient: PoolClient) {
   const relations = readFileSync(
     resolveFilePath("./sql/setRelations.sql"),
-    "utf8"
+    "utf8",
   );
   const indexes = readFileSync(resolveFilePath("./sql/setIndexes.sql"), "utf8");
 
@@ -152,7 +158,7 @@ async function finalizeTables(pgClient: PoolClient) {
       throw new Error(`Error setting relations or indexes: ${error.message}`);
     }
     throw new Error(
-      `There was an unknown error while setting relations and indexes.`
+      `There was an unknown error while setting relations and indexes.`,
     );
   }
 }
