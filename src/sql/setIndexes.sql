@@ -1,6 +1,3 @@
-BEGIN TRANSACTION;
-
-
 -- Index: idx_calendar_dates_exception_type
 DROP INDEX IF EXISTS idx_calendar_dates_exception_type;
 
@@ -121,6 +118,3 @@ DROP INDEX IF EXISTS idx_trips_shape_id;
 CREATE INDEX idx_trips_shape_id ON trip (
     "shape_id"
 );
-
-
-COMMIT TRANSACTION;
